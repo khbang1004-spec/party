@@ -207,11 +207,11 @@
                                                             {showTeams ? '닫기' : '조 확인하기 👑'}
                                                         </button>
                                                         {showTeams && (
-                                                            <div className="mt-3 p-3 bg-white/60 border border-[#f0d0de] rounded-xl space-y-1.5 text-[11px] sm:text-xs">
+                                                            <div className="mt-3 p-3 bg-white/60 border border-[#f0d0de] rounded-xl space-y-1.5 text-[11px] sm:text-xs text-left">
                                                                 {teams.map((t, idx) => (
                                                                     <div key={idx} className="flex justify-between border-b border-dashed border-[#f0d0de] pb-1 last:border-0 last:pb-0">
                                                                         <span className="font-bold text-[#c58ea4] shrink-0 mr-2">{t.name}</span>
-                                                                        <span className="text-[#8a7281]">{t.members.join(', ')}</span>
+                                                                        <span className="text-[#8a7281] truncate">{t.members.join(', ')}</span>
                                                                     </div>
                                                                 ))}
                                                             </div>
@@ -227,15 +227,15 @@
                                     <div className="flex items-center justify-center space-x-2 mb-5 border-b border-[#f0d0de] pb-2 text-[#c58ea4]"><p className="text-lg sm:text-xl font-bold">만찬 메뉴 & 방명록 🥂</p></div>
                                     
                                     {errorMsg && (
-                                        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-xs rounded-xl">
+                                        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-[10px] rounded-xl">
                                             {errorMsg}
                                         </div>
                                     )}
 
-                                    <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4 bg-[#fcf8f9] p-4 sm:p-5 rounded-2xl border border-[#e6b3c9] shadow-sm mb-6">
+                                    <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4 bg-[#fcf8f9] p-4 sm:p-5 rounded-2xl border border-[#e6b3c9] shadow-sm mb-6 text-left">
                                         <div><label className="text-[10px] sm:text-xs font-bold text-[#a28695] ml-1">공주님의 존함은?</label><input required className="w-full border border-[#f0d0de] rounded-xl px-3 py-2 text-sm mt-0.5 outline-none font-sans" placeholder="이름을 적어주세요" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} /></div>
                                         <div><label className="text-[10px] sm:text-xs font-bold text-[#a28695] ml-1">기피하는 식재료가 있나요?</label><input className="w-full border border-[#f0d0de] rounded-xl px-3 py-2 text-sm mt-0.5 outline-none font-sans" placeholder="알레르기 등" value={formData.allergies} onChange={e => setFormData({...formData, allergies: e.target.value})} /></div>
-                                        <div><label className="text-[10px] sm:text-xs font-bold text-[#a28695] ml-1">먹고 싶은 음식이 있나요?</label><input className="w-full border border-[#f0d0de] rounded-xl px-3 py-2 text-sm mt-0.5 outline-none font-sans" placeholder="메뉴 신청" value={formData.wishes} onChange={e => setFormData({...formData, wishes: e.target.value})} /></div>
+                                        <div><label className="text-[10px] sm:text-xs font-bold text-[#a28695] ml-1">먹고싶은 음식이 있나요?</label><input className="w-full border border-[#f0d0de] rounded-xl px-3 py-2 text-sm mt-0.5 outline-none font-sans" placeholder="메뉴 신청" value={formData.wishes} onChange={e => setFormData({...formData, wishes: e.target.value})} /></div>
                                         <div><label className="text-[10px] sm:text-xs font-bold text-[#a28695] ml-1">호스트에게 남기고 싶은 말 💌</label><textarea className="w-full border border-[#f0d0de] rounded-xl px-3 py-2 text-sm mt-0.5 outline-none h-14 sm:h-16 resize-none font-sans" placeholder="메시지를 남겨주세요" value={formData.message} onChange={e => setFormData({...formData, message: e.target.value})} /></div>
                                         <button type="submit" disabled={isSubmitting || !user} className="w-full bg-[#5e4b56] text-white py-3 rounded-xl font-bold flex justify-center items-center shadow-md active:scale-95 transition-all text-base sm:text-lg">
                                             {isSubmitting ? '전송 중...' : '방명록 남기기'}
@@ -243,16 +243,18 @@
                                     </form>
 
                                     <div className="space-y-3">
-                                        <div className="bg-[#fdf2f6] border border-[#f0d0de] rounded-xl p-3 shadow-sm relative overflow-hidden">
+                                        {/* 가이드 댓글 */}
+                                        <div className="bg-[#fdf2f6] border border-[#f0d0de] rounded-xl p-3 shadow-sm relative overflow-hidden text-left">
                                             <div className="flex items-center space-x-2 mb-1.5"><CrownIcon className="w-3.5 h-3.5 text-[#d4af37]" /><span className="font-bold text-xs sm:text-sm">경희 호스트 공주님</span></div>
                                             <div className="text-[11px] sm:text-xs text-[#7c6373] space-y-1 bg-white/60 p-2.5 rounded-lg border border-dashed border-[#e6b3c9]">
-                                                <p><span className="font-bold text-[#c58ea4] mr-2">못 먹는 것:</span> 맛없는거 빼고 다 먹어요</p>
-                                                <p><span className="font-bold text-[#c58ea4] mr-2">먹고 싶은 것:</span> 엽떡이랑 허니콤보!</p>
-                                                <p><span className="font-bold text-[#c58ea4] mr-2">남기는 말:</span> 얘들아 빨리와서 같이 놀자 💖</p>
+                                                <p><span className="font-bold text-[#c58ea4] mr-2">못 먹는것:</span> 맛없는거 빼고 다 먹어요</p>
+                                                <p><span className="font-bold text-[#c58ea4] mr-2">먹고싶은것:</span> 엽떡이랑 허니콤보!</p>
+                                                <p><span className="font-bold text-[#c58ea4] mr-2">남긴말:</span> 얘들아 빨리와서 같이 놀자 💖</p>
                                             </div>
                                         </div>
+                                        {/* 실시간 댓글 리스트 */}
                                         {sortedComments.map(c => (
-                                            <div key={c.id} className="bg-white border border-[#f0d0de] rounded-xl p-3 shadow-sm transition-all">
+                                            <div key={c.id} className="bg-white border border-[#f0d0de] rounded-xl p-3 shadow-sm transition-all text-left">
                                                 <div className="flex items-center space-x-2 mb-1.5"><CrownIcon className="w-3.5 h-3.5 text-[#d4af37]" /><span className="font-bold text-xs sm:text-sm">{c.name} 공주님</span></div>
                                                 {editingId === c.id ? (
                                                     <div className="space-y-2 bg-[#fcf8f9] p-2 rounded">
@@ -267,9 +269,9 @@
                                                 ) : (
                                                     <div className="group relative">
                                                         <div className="text-[11px] sm:text-xs text-[#7c6373] space-y-0.5 bg-[#fcf8f9] p-2.5 rounded-lg border border-dashed border-[#e6b3c9]">
-                                                            <p><span className="font-bold text-[#c58ea4] mr-2">못 먹는 것:</span> {c.allergies}</p>
-                                                            <p><span className="font-bold text-[#c58ea4] mr-2">먹고 싶은 것:</span> {c.wishes}</p>
-                                                            {c.message && <p><span className="font-bold text-[#c58ea4] mr-2">남기는 말:</span> {c.message}</p>}
+                                                            <p><span className="font-bold text-[#c58ea4] mr-2">못 먹는것:</span> {c.allergies}</p>
+                                                            <p><span className="font-bold text-[#c58ea4] mr-2">먹고싶은것:</span> {c.wishes}</p>
+                                                            {c.message && <p><span className="font-bold text-[#c58ea4] mr-2">남긴말:</span> {c.message}</p>}
                                                         </div>
                                                         {user && user.uid === c.userId && (
                                                             <div className="mt-1.5 flex justify-end space-x-3 text-[9px] sm:text-[10px] text-[#a28695] font-bold">
