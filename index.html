@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2025 1교 여은파 초대장</title>
+    <title>2026 1교 여은파 초대장</title>
     <!-- 라이브러리 로드 -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -70,7 +70,7 @@
         const db = firebase.firestore();
         
         // 중요: Canvas 프리뷰 환경에서는 window.__app_id를 우선 사용해야 권한 오류가 발생하지 않습니다.
-        const currentAppId = typeof window.__app_id !== 'undefined' ? window.__app_id : "garam-party-2025";
+        const currentAppId = typeof window.__app_id !== 'undefined' ? window.__app_id : "garam-party-2026";
 
         function App() {
             const [showTeams, setShowTeams] = useState(false);
@@ -180,7 +180,7 @@
             return (
                 <div className="min-h-screen py-10 px-4 flex justify-center items-start elegant-font text-[#5e4b56]">
                     <div className="w-full max-w-md bg-white/80 backdrop-blur-sm relative shadow-2xl rounded-t-[100px] rounded-b-3xl overflow-hidden border-2 border-[#f0d0de] p-2">
-                        <div className="w-full h-full border border-dashed border-[#e6b3c9] rounded-t-[90px] rounded-b-2xl pb-12 pt-14 px-6 relative bg-white/50">
+                        <div className="w-full h-full border border-dashed border-[#e6b3c9] rounded-t-[90px] rounded-b-2xl pb-12 pt-14 px-4 relative bg-white/50">
                             
                             <div className="absolute top-10 left-8 text-pink-300 animate-pulse z-20"><SparklesIcon size={20} /></div>
                             <div className="absolute top-16 right-10 text-purple-300 animate-pulse z-20"><SparklesIcon size={24} /></div>
@@ -190,18 +190,18 @@
 
                             <div className="flex flex-col items-center">
                                 <CrownIcon className="w-10 h-10 text-[#d4af37] mb-4 drop-shadow-sm" />
-                                <p className="text-sm font-bold tracking-[0.2em] text-[#d4af37] mb-2">2025 1교 여은파</p>
+                                <p className="text-sm font-bold tracking-[0.2em] text-[#d4af37] mb-2">2026 1교 여은파</p>
                                 <h1 className="text-3xl font-bold tracking-widest text-[#4a3642] text-center leading-snug mb-8">경희의 집에<br/>초대합니다</h1>
 
-                                <div className="text-center space-y-2 text-lg text-[#7c6373] leading-relaxed mb-10 border-y border-[#e6b3c9]/50 py-4 w-full px-4">
+                                <div className="text-center space-y-2 text-sm text-[#7c6373] leading-relaxed mb-10 border-y border-[#e6b3c9]/50 py-4 w-full px-4">
                                     <p>아름다운 이웃나라 공주님들, 환영합니다.</p>
                                     <p>경희공쥬의 집이 예쁘게 단장되어</p>
                                     <p>우리만의 은밀한 파티를 개최합니다.</p>
                                 </div>
 
                                 <div className="w-full bg-[#fdf2f6] rounded-2xl py-6 text-center space-y-3 mb-10">
-                                    <p className="text-xl font-bold"><span className="text-[#c58ea4] text-sm block mb-1">일시</span>2025년 4월 13일 월요일 오후 5:30</p>
-                                    <p className="text-xl font-bold"><span className="text-[#c58ea4] text-sm block mt-3 mb-1">장소</span>경희네 집</p>
+                                    <p className="text-base font-bold"><span className="text-[#c58ea4] text-sm block mb-1">일시</span>2026년 4월 13일 월요일 오후 5:30</p>
+                                    <p className="text-base font-bold"><span className="text-[#c58ea4] text-sm block mt-3 mb-1">장소</span>경희네 집</p>
                                     <p className="text-sm font-bold text-[#a28695]">천안시 노태산로 145 두정e편한세상2차 107-802</p>
                                     <div className="mt-4 pt-4 border-t border-dashed border-[#e6b3c9] w-2/3 mx-auto">
                                         <p className="text-base font-bold text-[#d4af37]">드레스 코드: 핑크나 보라 아이템 포함</p>
@@ -209,11 +209,11 @@
                                 </div>
 
                                 <div className="w-full mb-12">
-                                    <div className="flex items-center justify-center space-x-2 mb-5 text-[#c58ea4]"><GemIcon /><p className="text-xl font-bold">개꿀잼파티 식순</p><GemIcon /></div>
+                                    <div className="flex items-center justify-center space-x-2 mb-5 text-[#c58ea4]"><GemIcon /><p className="text-base font-bold">개꿀잼파티 식순</p><GemIcon /></div>
                                     <div className="space-y-4">
                                         {jamcons.map(jc => (
                                             <div key={jc.id} className="border border-[#f0d0de] bg-white rounded-2xl px-5 py-4 shadow-sm">
-                                                <div className="text-lg font-bold text-[#5e4b56] mb-1">{jc.title}</div>
+                                                <div className="text-base font-bold text-[#5e4b56] mb-1">{jc.title}</div>
                                                 <div className="text-sm text-[#8a7281] leading-relaxed">{jc.desc}</div>
                                                 {jc.id === 1 && (
                                                     <div className="mt-3">
@@ -238,7 +238,7 @@
                                 </div>
 
                                 <div className="w-full mb-8">
-                                    <div className="flex items-center justify-center space-x-2 mb-6 border-b border-[#f0d0de] pb-2 text-[#c58ea4]"><p className="text-xl font-bold">만찬 메뉴 & 방명록 🥂</p></div>
+                                    <div className="flex items-center justify-center space-x-2 mb-6 border-b border-[#f0d0de] pb-2 text-[#c58ea4]"><p className="text-base font-bold">만찬 메뉴 & 방명록 🥂</p></div>
                                     <form onSubmit={handleSubmit} className="space-y-4 bg-[#fcf8f9] p-5 rounded-2xl border border-[#e6b3c9] shadow-sm mb-8">
                                         <div><label className="text-xs font-bold text-[#a28695] ml-1">존함</label><input required className="w-full border border-[#f0d0de] rounded-xl px-4 py-2 text-sm mt-1 outline-none font-sans" placeholder="이름을 적어주세요" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} /></div>
                                         <div><label className="text-xs font-bold text-[#a28695] ml-1">못 먹는 음식</label><input className="w-full border border-[#f0d0de] rounded-xl px-4 py-2 text-sm mt-1 outline-none font-sans" placeholder="알레르기 등" value={formData.allergies} onChange={e => setFormData({...formData, allergies: e.target.value})} /></div>
