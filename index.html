@@ -1,388 +1,264 @@
-import React, { useState, useEffect } from 'react';
-import { Send, Crown, Sparkles, Gem, MessageCircleHeart, Edit2, Trash2, X, Check } from 'lucide-react';
-import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2025 1교 여은파 초대장</title>
+    <!-- 필요한 라이브러리들을 불러옵니다 -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 파이어베이스 SDK (웹 배포용) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
-// --- Firebase 초기화 (데이터베이스 연결 - 스크린샷 정보 적용) ---
-const firebaseConfig = {
-  apiKey: "AIzaSyA6n3vH4IiEp_RJSd--MOiDdmd6SrIhHA0",
-  authDomain: "garam-48988.firebaseapp.com",
-  projectId: "garam-48988",
-  storageBucket: "garam-48988.firebasestorage.app",
-  messagingSenderId: "677063999756",
-  appId: "1:677063999756:web:84f32659da577e242e8929"
-};
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        .elegant-font { font-family: 'Gowun Batang', serif; }
+        ::-webkit-scrollbar { width: 0px; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+        .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        /* 입력창 폰트 가독성 조절 */
+        input, textarea { font-family: sans-serif !important; }
+    </style>
+</head>
+<body class="bg-[#fceef3]">
+    <div id="root"></div>
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-// 깃허브 배포를 위해 고정된 프로젝트 ID를 사용합니다
-const appId = "garam-party-2025"; 
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
 
-export default function App() {
-  const [showTeams, setShowTeams] = useState(false);
-  const [user, setUser] = useState(null);
-  const [comments, setComments] = useState([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // 폼 및 수정 상태 관리
-  const [formData, setFormData] = useState({ name: '', allergies: '', wishes: '', message: '' });
-  const [editingId, setEditingId] = useState(null);
-  const [editFormData, setEditFormData] = useState({ allergies: '', wishes: '', message: '' });
-  const [deletingId, setDeletingId] = useState(null);
+        // 아이콘 SVG 컴포넌트들
+        const CrownIcon = ({ className }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg>
+        );
+        const SparklesIcon = ({ className, size = 24 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+        );
+        const GemIcon = ({ size = 16 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M11 3 8 9l3 12"/><path d="M13 3l3 6-3 12"/><path d="M2 9h20"/></svg>
+        );
+        const SendIcon = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+        );
 
-  // 1. 사용자 인증 (익명 로그인)
-  useEffect(() => {
-    const initAuth = async () => {
-      try {
-        await signInAnonymously(auth);
-      } catch (error) {
-        console.error("Auth error:", error);
-      }
-    };
-    initAuth();
+        // --- Firebase 설정 ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyA6n3vH4IiEp_RJSd--MOiDdmd6SrIhHA0",
+            authDomain: "garam-48988.firebaseapp.com",
+            projectId: "garam-48988",
+            storageBucket: "garam-48988.firebasestorage.app",
+            messagingSenderId: "677063999756",
+            appId: "1:677063999756:web:84f32659da577e242e8929"
+        };
 
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-    return () => unsubscribe();
-  }, []);
+        // 초기화
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const currentAppId = "garam-party-2025";
 
-  // 2. 실시간 댓글 데이터 불러오기
-  useEffect(() => {
-    if (!user) return;
+        function App() {
+            const [showTeams, setShowTeams] = useState(false);
+            const [user, setUser] = useState(null);
+            const [rawComments, setRawComments] = useState([]);
+            const [isSubmitting, setIsSubmitting] = useState(false);
+            const [formData, setFormData] = useState({ name: '', allergies: '', wishes: '', message: '' });
+            const [editingId, setEditingId] = useState(null);
+            const [editFormData, setEditFormData] = useState({ allergies: '', wishes: '', message: '' });
+            const [deletingId, setDeletingId] = useState(null);
 
-    const commentsRef = collection(db, 'artifacts', appId, 'public', 'comments');
-    const unsubscribe = onSnapshot(commentsRef, (snapshot) => {
-      const commentsData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      // 최신 글이 위로 오도록 정렬
-      commentsData.sort((a, b) => b.createdAt - a.createdAt);
-      setComments(commentsData);
-    }, (error) => {
-      console.error("Error fetching comments:", error);
-    });
+            // 최신순 정렬
+            const sortedComments = useMemo(() => {
+                return [...rawComments].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            }, [rawComments]);
 
-    return () => unsubscribe();
-  }, [user]);
+            // 로그인 및 데이터 로드
+            useEffect(() => {
+                auth.signInAnonymously().catch(err => console.error("Auth error:", err));
+                const unsubAuth = auth.onAuthStateChanged(setUser);
+                return () => unsubAuth();
+            }, []);
 
-  // 3. 방명록 전송하기
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!user || !formData.name.trim()) return;
+            useEffect(() => {
+                if (!user) return;
+                const ref = db.collection('artifacts').doc(currentAppId).collection('public').doc('data').collection('comments');
+                const unsubData = ref.onSnapshot(snap => {
+                    const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    setRawComments(data);
+                });
+                return () => unsubData();
+            }, [user]);
 
-    setIsSubmitting(true);
-    try {
-      const commentsRef = collection(db, 'artifacts', appId, 'public', 'comments');
-      await addDoc(commentsRef, {
-        name: formData.name,
-        allergies: formData.allergies || '없음',
-        wishes: formData.wishes || '아무거나 다 좋아!',
-        message: formData.message || '',
-        createdAt: Date.now(),
-        userId: user.uid
-      });
-      setFormData({ name: '', allergies: '', wishes: '', message: '' });
-    } catch (error) {
-      console.error("Error adding comment:", error);
-      alert("전송에 실패했습니다. 파이어베이스 Firestore 규칙이 '테스트 모드'인지 확인해주세요!");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                if (!user || !formData.name.trim()) return;
+                setIsSubmitting(true);
+                try {
+                    const ref = db.collection('artifacts').doc(currentAppId).collection('public').doc('data').collection('comments');
+                    await ref.add({
+                        ...formData,
+                        createdAt: Date.now(),
+                        userId: user.uid
+                    });
+                    setFormData({ name: '', allergies: '', wishes: '', message: '' });
+                } catch (err) { alert("전송 실패!"); }
+                finally { setIsSubmitting(false); }
+            };
 
-  // 4. 방명록 수정 모드 켜기
-  const handleEditClick = (comment) => {
-    setEditingId(comment.id);
-    setEditFormData({ allergies: comment.allergies, wishes: comment.wishes, message: comment.message || '' });
-    setDeletingId(null);
-  };
+            const handleUpdate = async (id) => {
+                const ref = db.collection('artifacts').doc(currentAppId).collection('public').doc('data').collection('comments').doc(id);
+                await ref.update(editFormData);
+                setEditingId(null);
+            };
 
-  // 5. 방명록 수정 완료
-  const handleUpdate = async (id) => {
-    try {
-      const commentRef = doc(db, 'artifacts', appId, 'public', 'comments', id);
-      await updateDoc(commentRef, {
-        allergies: editFormData.allergies || '없음',
-        wishes: editFormData.wishes || '아무거나 다 좋아!',
-        message: editFormData.message || ''
-      });
-      setEditingId(null);
-    } catch (error) {
-      console.error("Error updating comment:", error);
-    }
-  };
+            const handleDelete = async (id) => {
+                const ref = db.collection('artifacts').doc(currentAppId).collection('public').doc('data').collection('comments').doc(id);
+                await ref.delete();
+            };
 
-  // 6. 방명록 삭제
-  const handleDelete = async (id) => {
-    try {
-      const commentRef = doc(db, 'artifacts', appId, 'public', 'comments', id);
-      await deleteDoc(commentRef);
-      setDeletingId(null);
-    } catch (error) {
-      console.error("Error deleting comment:", error);
-    }
-  };
+            const jamcons = [
+                { id: 1, title: '제 1장 : 공주들의 만찬', desc: '기본음식 제공, 조별로 랜덤음식 시키기' },
+                { id: 2, title: '제 2장 : 공주들의 선물 교환식', desc: '작은 선물 사와 제비뽑기로 선물 줄 사람 뽑고 그 사람한테 선물 전달하기(집들이 선물 X)' },
+                { id: 3, title: '제 3장 : 공주들의 유희', desc: '보드게임 제공하나, 더 가져오고 싶으면 가져오기 아니면 경희 연애스토리 듣기^_^' }
+            ];
 
-  const jamcons = [
-    { id: 1, title: '제 1장 : 공주들의 만찬', desc: '기본음식 제공, 조별로 랜덤음식 시키기' },
-    { id: 2, title: '제 2장 : 공주들의 선물 교환식', desc: '작은 선물 사와 제비뽑기로 선물 줄 사람 뽑고 그 사람한테 선물 전달하기(집들이 선물 X)' },
-    { id: 3, title: '제 3장 : 공주들의 유희', desc: '보드게임 제공하나, 더 가져오고 싶으면 가져오기(커피러시, 아브라카왓, 미니빌2, 스플렌더, 머핀타임) 아니면 경희 연애스토리 듣기^_^' }
-  ];
+            const teams = [
+                { name: '1조', members: ['방경희', '강지혜', '김해인', '문예진'] },
+                { name: '2조', members: ['양은경', '유수빈', '정선호', '정수빈'] },
+                { name: '3조', members: ['주민지', '주하영', '최윤영'] }
+            ];
 
-  const teams = [
-    { name: '1조', members: ['방경희', '강지혜', '김해인', '문예진'] },
-    { name: '2조', members: ['양은경', '유수빈', '정선호', '정수빈'] },
-    { name: '3조', members: ['주민지', '주하영', '최윤영'] }
-  ];
+            return (
+                <div className="min-h-screen py-6 sm:py-10 px-3 sm:px-4 flex justify-center items-start elegant-font text-[#5e4b56]">
+                    <div className="w-full max-w-md bg-white/80 backdrop-blur-sm relative shadow-2xl rounded-t-[80px] sm:rounded-t-[100px] rounded-b-3xl overflow-hidden border-2 border-[#f0d0de] p-1.5 sm:p-2">
+                        <div className="w-full h-full border border-dashed border-[#e6b3c9] rounded-t-[70px] sm:rounded-t-[90px] rounded-b-2xl pb-10 sm:pb-12 pt-12 sm:pt-14 px-4 sm:px-6 relative bg-white/50">
+                            
+                            <div className="absolute top-10 left-6 text-pink-300 animate-pulse z-20"><SparklesIcon size={18} /></div>
+                            <div className="absolute top-14 right-8 text-purple-300 animate-pulse z-20"><SparklesIcon size={22} /></div>
+                            <div className="absolute top-[280px] right-1 text-2xl opacity-90 z-20">Swan🦢</div>
+                            <div className="absolute top-[580px] left-1 text-2xl opacity-90 z-20">Ribbon🎀</div>
+                            <div className="absolute bottom-[30px] right-3 text-2xl opacity-90 z-20">Cake🍰</div>
 
-  return (
-    <>
-      <style>
-        {`
-          @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap');
-          .elegant-font {
-            font-family: 'Gowun Batang', serif;
-          }
-          ::-webkit-scrollbar { width: 0px; }
-        `}
-      </style>
+                            <div className="flex flex-col items-center">
+                                <CrownIcon className="w-8 h-8 sm:w-10 sm:h-10 text-[#d4af37] mb-3 sm:mb-4 drop-shadow-sm" />
+                                <p className="text-[10px] sm:text-xs font-bold tracking-[0.2em] text-[#d4af37] mb-1 sm:mb-2 uppercase">2025 1교 여은파</p>
+                                <h1 className="text-2xl sm:text-3xl font-bold tracking-widest text-[#4a3642] text-center leading-snug mb-6 sm:mb-8 break-keep">경희의 집에 초대합니다</h1>
 
-      <div className="min-h-screen bg-gradient-to-br from-[#fdfbfb] via-[#fceef3] to-[#ebd7e9] py-10 px-4 flex justify-center items-start elegant-font text-[#5e4b56] overflow-hidden relative">
-        <div className="w-full max-w-md bg-white/80 backdrop-blur-sm relative shadow-[0_10px_40px_-15px_rgba(200,150,180,0.5)] rounded-t-[100px] rounded-b-3xl overflow-hidden border-2 border-[#f0d0de] p-2 z-10">
-          <div className="w-full h-full border border-dashed border-[#e6b3c9] rounded-t-[90px] rounded-b-2xl pb-12 pt-14 px-5 sm:px-6 relative bg-white/50">
-            
-            <div className="absolute top-10 left-8 text-pink-300 animate-pulse z-20"><Sparkles size={20} /></div>
-            <div className="absolute top-16 right-10 text-purple-300 animate-pulse delay-75 z-20"><Sparkles size={24} /></div>
-            <div className="absolute top-[320px] right-1 text-3xl opacity-90 z-20 drop-shadow-sm">🦢</div>
-            <div className="absolute top-[650px] left-1 text-3xl opacity-90 z-20 drop-shadow-sm">🎀</div>
-
-            <div className="relative z-10 flex flex-col items-center">
-              
-              <Crown className="w-10 h-10 text-[#d4af37] mb-4 drop-shadow-sm" strokeWidth={1.5} />
-              <p className="text-sm font-bold tracking-[0.2em] text-[#d4af37] mb-2">2025 1교 여은파</p>
-              <h1 className="text-3xl sm:text-4xl font-bold tracking-widest text-[#4a3642] text-center leading-snug mb-8">
-                경희의 집에<br/>초대합니다
-              </h1>
-
-              <div className="text-center space-y-2 text-lg text-[#7c6373] leading-relaxed mb-10 w-full px-4 relative">
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-12 h-px bg-[#e6b3c9]"></div>
-                <p>아름다운 이웃나라 공주님들, 환영합니다.</p>
-                <p>경희공쥬의 집이 예쁘게 단장되어</p>
-                <p>25 1교 여자들만의 은밀한 파티를 개최합니다.</p>
-                <p>오셔서 자리를 빛내주시겠어요?</p>
-                <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-12 h-px bg-[#e6b3c9]"></div>
-              </div>
-
-              <div className="w-full bg-gradient-to-r from-transparent via-[#fdf2f6] to-transparent py-6 text-center space-y-3 mb-10">
-                <p className="text-xl font-bold text-[#5e4b56]">
-                  <span className="text-[#c58ea4] text-sm block mb-1">일시</span>
-                  2025년 4월 13일 월요일 오후 5:30
-                </p>
-                <p className="text-xl font-bold text-[#5e4b56]">
-                  <span className="text-[#c58ea4] text-sm block mt-3 mb-1">장소</span>
-                  경희네 집
-                </p>
-                <p className="text-sm font-bold text-[#a28695]">천안시 노태산로 145 두정e편한세상2차 107-802</p>
-                <p className="text-sm font-bold text-[#a28695]">(차 끌고 오는 사람은 미리 차 번호 갠톡으로 보내주세요!)</p>
-                <div className="mt-4 pt-4 border-t border-dashed border-[#e6b3c9] w-2/3 mx-auto">
-                  <p className="text-base font-bold text-[#d4af37]">드레스 코드 : 핑크나 보라 아이템</p>
-                  <p className="text-base font-bold text-[#d4af37]">포함해서 공주님처럼 👑</p>
-                </div>
-              </div>
-
-              <div className="w-full mb-12">
-                <div className="flex items-center justify-center space-x-2 mb-5 text-[#c58ea4]">
-                  <Gem size={16} />
-                  <p className="text-xl font-bold text-center">개꿀잼파티 식순</p>
-                  <Gem size={16} />
-                </div>
-                
-                <div className="space-y-4">
-                  {jamcons.map((jc) => (
-                    <div key={jc.id} className="border border-[#f0d0de] bg-white/80 rounded-2xl px-5 py-4 transition-all duration-300 hover:shadow-md">
-                      <div className="text-lg font-bold text-[#5e4b56] mb-1">{jc.title}</div>
-                      <div className="text-base text-[#8a7281] leading-relaxed">
-                        {jc.desc}
-                      </div>
-                      
-                      {jc.id === 1 && (
-                        <div className="mt-3">
-                          <button
-                            type="button"
-                            onClick={() => setShowTeams(!showTeams)}
-                            className="text-sm font-bold bg-[#fdf2f6] text-[#c58ea4] border border-[#e6b3c9] px-4 py-2 rounded-xl hover:bg-[#fceef3] transition-colors shadow-sm"
-                          >
-                            {showTeams ? '조 편성 숨기기' : '조 확인하기 👑'}
-                          </button>
-                          
-                          {showTeams && (
-                            <div className="mt-3 p-4 bg-white/60 border border-[#f0d0de] rounded-xl space-y-2 shadow-inner">
-                              {teams.map((team, idx) => (
-                                <div key={idx} className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm border-b border-dashed border-[#f0d0de] last:border-0 pb-2 last:pb-0">
-                                  <span className="font-bold text-[#c58ea4] mb-1 sm:mb-0">{team.name}</span>
-                                  <span className="text-[#8a7281] tracking-wide">{team.members.join(', ')}</span>
+                                <div className="text-center space-y-1.5 text-base sm:text-lg text-[#7c6373] leading-relaxed mb-8 border-y border-[#e6b3c9]/50 py-4 w-full px-2 break-keep">
+                                    <p>아름다운 이웃나라 공주님들, 환영합니다.</p>
+                                    <p>경희공쥬의 집이 예쁘게 단장되어</p>
+                                    <p>우리만의 은밀한 파티를 개최합니다.</p>
                                 </div>
-                              ))}
+
+                                <div className="w-full bg-[#fdf2f6] rounded-2xl py-5 sm:py-6 text-center space-y-2 sm:space-y-3 mb-8">
+                                    <p className="text-lg sm:text-xl font-bold"><span className="text-[#c58ea4] text-[10px] sm:text-xs block mb-0.5 sm:mb-1">일시</span>2025년 4월 13일 월요일 오후 5:30</p>
+                                    <div className="space-y-0.5">
+                                        <span className="text-[#c58ea4] text-[10px] sm:text-xs block font-bold">장소</span>
+                                        <p className="text-lg sm:text-xl font-bold">경희네 집</p>
+                                        <p className="text-[11px] sm:text-sm font-bold text-[#a28695] break-all px-1">천안시 노태산로 145 두정e편한세상2차 107-802</p>
+                                    </div>
+                                    <div className="mt-3 pt-3 border-t border-dashed border-[#e6b3c9] w-[80%] mx-auto">
+                                        <p className="text-sm sm:text-base font-bold text-[#d4af37]">드레스 코드: 핑크나 보라 아이템 포함</p>
+                                    </div>
+                                </div>
+
+                                <div className="w-full mb-10">
+                                    <div className="flex items-center justify-center space-x-2 mb-4 text-[#c58ea4]"><GemIcon /><p className="text-lg sm:text-xl font-bold">개꿀잼파티 식순</p><GemIcon /></div>
+                                    <div className="space-y-3">
+                                        {jamcons.map(jc => (
+                                            <div key={jc.id} className="border border-[#f0d0de] bg-white rounded-2xl px-4 py-3 shadow-sm">
+                                                <div className="text-base sm:text-lg font-bold text-[#5e4b56] mb-0.5">{jc.title}</div>
+                                                <div className="text-[12px] sm:text-sm text-[#8a7281] leading-relaxed break-keep">{jc.desc}</div>
+                                                {jc.id === 1 && (
+                                                    <div className="mt-2">
+                                                        <button onClick={() => setShowTeams(!showTeams)} className="text-[10px] sm:text-xs font-bold bg-[#fdf2f6] text-[#c58ea4] border border-[#e6b3c9] px-3 py-1.5 rounded-lg active:scale-95 transition-transform">
+                                                            {showTeams ? '닫기' : '조 확인하기 👑'}
+                                                        </button>
+                                                        {showTeams && (
+                                                            <div className="mt-3 p-3 bg-white/60 border border-[#f0d0de] rounded-xl space-y-1.5 text-[11px] sm:text-xs">
+                                                                {teams.map((t, idx) => (
+                                                                    <div key={idx} className="flex justify-between border-b border-dashed border-[#f0d0de] pb-1 last:border-0 last:pb-0">
+                                                                        <span className="font-bold text-[#c58ea4] shrink-0 mr-2">{t.name}</span>
+                                                                        <span className="text-[#8a7281]">{t.members.join(', ')}</span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="w-full mb-6">
+                                    <div className="flex items-center justify-center space-x-2 mb-5 border-b border-[#f0d0de] pb-2 text-[#c58ea4]"><p className="text-lg sm:text-xl font-bold">만찬 메뉴 & 방명록 🥂</p></div>
+                                    <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4 bg-[#fcf8f9] p-4 sm:p-5 rounded-2xl border border-[#e6b3c9] shadow-sm mb-6">
+                                        <div><label className="text-[10px] sm:text-xs font-bold text-[#a28695] ml-1">공주님의 존함은?</label><input required className="w-full border border-[#f0d0de] rounded-xl px-3 py-2 text-sm mt-0.5 outline-none" placeholder="이름을 적어주세요" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} /></div>
+                                        <div><label className="text-[10px] sm:text-xs font-bold text-[#a28695] ml-1">기피하는 식재료가 있나요?</label><input className="w-full border border-[#f0d0de] rounded-xl px-3 py-2 text-sm mt-0.5 outline-none" placeholder="알레르기 등" value={formData.allergies} onChange={e => setFormData({...formData, allergies: e.target.value})} /></div>
+                                        <div><label className="text-[10px] sm:text-xs font-bold text-[#a28695] ml-1">먹고 싶은 음식이 있나요?</label><input className="w-full border border-[#f0d0de] rounded-xl px-3 py-2 text-sm mt-0.5 outline-none" placeholder="메뉴 신청" value={formData.wishes} onChange={e => setFormData({...formData, wishes: e.target.value})} /></div>
+                                        <div><label className="text-[10px] sm:text-xs font-bold text-[#a28695] ml-1">호스트에게 남기고 싶은 말 💌</label><textarea className="w-full border border-[#f0d0de] rounded-xl px-3 py-2 text-sm mt-0.5 outline-none h-14 sm:h-16 resize-none" placeholder="메시지를 남겨주세요" value={formData.message} onChange={e => setFormData({...formData, message: e.target.value})} /></div>
+                                        <button type="submit" disabled={isSubmitting} className="w-full bg-[#5e4b56] text-white py-3 rounded-xl font-bold flex justify-center items-center shadow-md active:scale-95 transition-all text-base sm:text-lg">
+                                            {isSubmitting ? '전송 중...' : '방명록 남기기'} <span className="ml-2"><SendIcon /></span>
+                                        </button>
+                                    </form>
+
+                                    <div className="space-y-3">
+                                        {/* 가이드 댓글 */}
+                                        <div className="bg-[#fdf2f6] border border-[#f0d0de] rounded-xl p-3 shadow-sm relative overflow-hidden">
+                                            <div className="flex items-center space-x-2 mb-1.5"><CrownIcon className="w-3.5 h-3.5 text-[#d4af37]" /><span className="font-bold text-xs sm:text-sm">경희 호스트 공주님</span></div>
+                                            <div className="text-[11px] sm:text-xs text-[#7c6373] space-y-1 bg-white/60 p-2.5 rounded-lg border border-dashed border-[#e6b3c9]">
+                                                <p><span className="font-bold text-[#c58ea4] mr-2">못 먹는 것:</span> 맛없는거 빼고 다 먹어요</p>
+                                                <p><span className="font-bold text-[#c58ea4] mr-2">먹고 싶은 것:</span> 엽떡이랑 허니콤보!</p>
+                                                <p><span className="font-bold text-[#c58ea4] mr-2">남기는 말:</span> 얘들아 빨리와서 같이 놀자 💖</p>
+                                            </div>
+                                        </div>
+                                        {/* 실시간 댓글 리스트 */}
+                                        {sortedComments.map(c => (
+                                            <div key={c.id} className="bg-white border border-[#f0d0de] rounded-xl p-3 shadow-sm transition-all">
+                                                <div className="flex items-center space-x-2 mb-1.5"><CrownIcon className="w-3.5 h-3.5 text-[#d4af37]" /><span className="font-bold text-xs sm:text-sm">{c.name} 공주님</span></div>
+                                                {editingId === c.id ? (
+                                                    <div className="space-y-2 bg-[#fcf8f9] p-2 rounded">
+                                                        <input className="w-full text-[11px] p-1.5 border rounded" value={editFormData.allergies} onChange={e => setEditFormData({...editFormData, allergies: e.target.value})} />
+                                                        <input className="w-full text-[11px] p-1.5 border rounded" value={editFormData.wishes} onChange={e => setEditFormData({...editFormData, wishes: e.target.value})} />
+                                                        <textarea className="w-full text-[11px] p-1.5 border rounded h-12 resize-none" value={editFormData.message} onChange={e => setEditFormData({...editFormData, message: e.target.value})} />
+                                                        <div className="flex justify-end space-x-2 text-[10px] font-bold py-1">
+                                                            <button onClick={() => setEditingId(null)} className="px-2">취소</button>
+                                                            <button onClick={() => handleUpdate(c.id)} className="text-[#c58ea4] px-2">저장</button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div>
+                                                        <div className="text-[11px] sm:text-xs text-[#7c6373] space-y-0.5 bg-[#fcf8f9] p-2.5 rounded-lg border border-dashed border-[#e6b3c9]">
+                                                            <p><span className="font-bold text-[#c58ea4] mr-2">못 먹는 것:</span> {c.allergies}</p>
+                                                            <p><span className="font-bold text-[#c58ea4] mr-2">먹고 싶은 것:</span> {c.wishes}</p>
+                                                            {c.message && <p><span className="font-bold text-[#c58ea4] mr-2">남기는 말:</span> {c.message}</p>}
+                                                        </div>
+                                                        {user && user.uid === c.userId && (
+                                                            <div className="mt-2 flex justify-end space-x-3 text-[9px] sm:text-[10px] text-[#a28695] font-bold">
+                                                                <button onClick={() => {setEditingId(c.id); setEditFormData({allergies: c.allergies, wishes: c.wishes, message: c.message})}}>수정</button>
+                                                                <button onClick={() => setDeletingId(c.id)} className="text-red-400">삭제</button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
-                          )}
                         </div>
-                      )}
                     </div>
-                  ))}
                 </div>
-              </div>
+            );
+        }
 
-              {/* 댓글 & 메뉴 신청 폼 */}
-              <div className="w-full mb-8">
-                <div className="flex items-center justify-center space-x-2 mb-6 border-b border-[#f0d0de] pb-2 text-[#c58ea4]">
-                  <MessageCircleHeart size={20} />
-                  <p className="text-xl font-bold text-center">만찬 메뉴 신청 & 방명록 🥂</p>
-                </div>
-                
-                <form onSubmit={handleSubmit} className="space-y-5 bg-[#fcf8f9] p-5 rounded-2xl border border-[#e6b3c9] shadow-sm mb-8">
-                  <div className="flex flex-col">
-                    <label className="text-sm font-bold text-[#a28695] mb-1 ml-1">공주님의 존함은?</label>
-                    <input 
-                      required 
-                      type="text" 
-                      className="bg-white border border-[#f0d0de] rounded-xl px-4 py-3 focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37] text-base text-[#5e4b56]" 
-                      placeholder="이름을 적어주세요" 
-                      value={formData.name} 
-                      onChange={e => setFormData({...formData, name: e.target.value})} 
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <label className="text-sm font-bold text-[#a28695] mb-1 ml-1">기피하는 식재료가 있나요?</label>
-                    <input 
-                      type="text" 
-                      className="bg-white border border-[#f0d0de] rounded-xl px-4 py-3 focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37] text-base text-[#5e4b56]" 
-                      placeholder="알레르기나 못 먹는 음식 (없으면 비워두세요)" 
-                      value={formData.allergies} 
-                      onChange={e => setFormData({...formData, allergies: e.target.value})} 
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <label className="text-sm font-bold text-[#a28695] mb-1 ml-1">먹고 싶은 음식이 있나요?</label>
-                    <input 
-                      type="text"
-                      className="bg-white border border-[#f0d0de] rounded-xl px-4 py-3 focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37] text-base text-[#5e4b56]" 
-                      placeholder="먹고 싶은 메뉴를 적어주세요!" 
-                      value={formData.wishes} 
-                      onChange={e => setFormData({...formData, wishes: e.target.value})} 
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <label className="text-sm font-bold text-[#a28695] mb-1 ml-1">호스트에게 남기고 싶은 말 💌</label>
-                    <textarea 
-                      className="bg-white border border-[#f0d0de] rounded-xl px-4 py-3 focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37] text-base text-[#5e4b56] resize-none h-20" 
-                      placeholder="자유롭게 적어주세요!" 
-                      value={formData.message} 
-                      onChange={e => setFormData({...formData, message: e.target.value})} 
-                    />
-                  </div>
-                  <button 
-                    type="submit" 
-                    disabled={isSubmitting || !user}
-                    className="w-full bg-[#5e4b56] text-white hover:bg-[#4a3642] disabled:bg-[#a28695] py-3 rounded-xl transition-all text-lg font-bold flex justify-center items-center mt-2 shadow-md"
-                  >
-                    {isSubmitting ? '전송 중...' : '방명록 남기기'} <Send className="w-4 h-4 ml-2 opacity-80" />
-                  </button>
-                </form>
-
-                {/* 실시간 방명록 리스트 */}
-                <div className="space-y-4">
-                  
-                  {/* 안내용 예시 댓글 (항상 표시) */}
-                  <div className="bg-[#fdf2f6] border border-[#f0d0de] rounded-xl p-4 shadow-sm relative overflow-hidden">
-                    <div className="absolute -top-3 -right-3 bg-[#d4af37] text-white text-[10px] font-bold px-4 py-1 rotate-45 mt-4 mr-2">가이드</div>
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Crown className="w-4 h-4 text-[#d4af37]" />
-                      <span className="font-bold text-[#5e4b56]">경희 호스트 공주님</span>
-                    </div>
-                    <div className="text-sm text-[#7c6373] space-y-1 bg-white/60 p-3 rounded-lg border border-dashed border-[#e6b3c9]">
-                      <p><span className="font-bold text-[#c58ea4] mr-2">못 먹는 것:</span> 맛없는거 빼고 다 먹어요</p>
-                      <p><span className="font-bold text-[#c58ea4] mr-2">먹고 싶은 것:</span> 엽떡이랑 허니콤보!</p>
-                      <p><span className="font-bold text-[#c58ea4] mr-2">남기는 말:</span> 얘들아 빨리와서 같이 놀자 💖</p>
-                    </div>
-                  </div>
-
-                  {comments.map((comment) => (
-                    <div key={comment.id} className="bg-white/80 border border-[#f0d0de] rounded-xl p-4 shadow-sm relative transition-all">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <Crown className="w-4 h-4 text-[#d4af37]" />
-                        <span className="font-bold text-[#5e4b56]">{comment.name} 공주님</span>
-                        <span className="text-xs text-[#bca4b1] ml-auto">
-                          {new Date(comment.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                      
-                      {/* 본인 댓글 수정 모드 */}
-                      {editingId === comment.id ? (
-                        <div className="space-y-3 bg-[#fcf8f9] p-3 rounded-lg border border-[#e6b3c9] mt-2">
-                          <input 
-                            value={editFormData.allergies} 
-                            onChange={(e) => setEditFormData({...editFormData, allergies: e.target.value})} 
-                            className="w-full text-sm px-2 py-1 border border-[#f0d0de] rounded focus:outline-none" 
-                            placeholder="못 먹는 것" 
-                          />
-                          <input 
-                            value={editFormData.wishes} 
-                            onChange={(e) => setEditFormData({...editFormData, wishes: e.target.value})} 
-                            className="w-full text-sm px-2 py-1 border border-[#f0d0de] rounded focus:outline-none" 
-                            placeholder="먹고 싶은 것" 
-                          />
-                          <textarea 
-                            value={editFormData.message} 
-                            onChange={(e) => setEditFormData({...editFormData, message: e.target.value})} 
-                            className="w-full text-sm px-2 py-1 border border-[#f0d0de] rounded focus:outline-none resize-none h-16" 
-                            placeholder="남기고 싶은 말" 
-                          />
-                          <div className="flex justify-end space-x-2 text-sm font-bold">
-                            <button onClick={() => setEditingId(null)} className="text-[#a28695] hover:text-[#5e4b56] px-2 py-1 flex items-center"><X size={14} className="mr-1"/>취소</button>
-                            <button onClick={() => handleUpdate(comment.id)} className="text-[#c58ea4] hover:text-[#5e4b56] px-2 py-1 flex items-center"><Check size={14} className="mr-1"/>저장</button>
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          {/* 일반 댓글 보기 모드 */}
-                          <div className="text-sm text-[#7c6373] space-y-1 bg-[#fcf8f9] p-3 rounded-lg border border-dashed border-[#e6b3c9]">
-                            <p><span className="font-bold text-[#c58ea4] mr-2">못 먹는 것:</span> {comment.allergies}</p>
-                            <p><span className="font-bold text-[#c58ea4] mr-2">먹고 싶은 것:</span> {comment.wishes}</p>
-                            {comment.message && <p><span className="font-bold text-[#c58ea4] mr-2">남기는 말:</span> {comment.message}</p>}
-                          </div>
-                          
-                          {/* 삭제 확인 및 수정 버튼 (작성자 본인에게만 보임) */}
-                          {user && user.uid === comment.userId && (
-                            <div className="mt-3 flex justify-end items-center">
-                              {deletingId === comment.id ? (
-                                <div className="flex items-center space-x-2 text-xs font-bold animate-pulse">
-                                  <span className="text-[#ff6b6b]">정말 삭제하시겠어요?</span>
-                                  <button onClick={() => handleDelete(comment.id)} className="bg-[#ff6b6b] text-white px-3 py-1 rounded-full shadow-sm">예</button>
-                                  <button onClick={() => setDeletingId(null)} className="bg-[#e6b3c9] text-white px-3 py-1 rounded-full shadow-sm">아니오</button>
-                                </div>
-                              ) : (
-                                <div className="flex space-x-4 text-xs font-bold text-[#a28695]">
-                                  <button onClick={() => handleEditClick(comment)} className="flex items-center hover:text-[#c58ea4] transition-colors"><Edit2 size={12} className="mr-1"/> 수정</button>
-                                  <button onClick={() => setDeletingId(comment.id)} className="flex items-center hover:text-[#ff6b6b] transition-colors"><Trash2 size={12} className="mr-1"/> 삭제</button>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
