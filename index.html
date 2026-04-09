@@ -244,9 +244,9 @@
                                         <div className="bg-[#fdf2f6] border border-[#f0d0de] rounded-xl p-3 shadow-sm relative overflow-hidden text-left">
                                             <div className="flex items-center space-x-2 mb-1.5"><CrownIcon className="w-3.5 h-3.5 text-[#d4af37]" /><span className="font-bold text-xs sm:text-sm">경희 호스트 공주님</span></div>
                                             <div className="text-[11px] sm:text-xs text-[#7c6373] space-y-1 bg-white/60 p-2.5 rounded-lg border border-dashed border-[#e6b3c9]">
-                                                <p><span className="font-bold text-[#c58ea4] mr-2">못 먹는것:</span> 맛없는거 빼고 다 먹어요</p>
-                                                <p><span className="font-bold text-[#c58ea4] mr-2">먹고싶은것:</span> 엽떡이랑 허니콤보!</p>
-                                                <p><span className="font-bold text-[#c58ea4] mr-2">남긴말:</span> 얘들아 빨리와서 같이 놀자 💖</p>
+                                                <p><span className="font-bold text-[#c58ea4] mr-2">못 먹는 것:</span> 맛없는거 빼고 다 먹어요</p>
+                                                <p><span className="font-bold text-[#c58ea4] mr-2">먹고 싶은 것:</span> 엽떡이랑 허니콤보!</p>
+                                                <p><span className="font-bold text-[#c58ea4] mr-2">남기는 말:</span> 얘들아 빨리와서 같이 놀자 💖</p>
                                             </div>
                                         </div>
                                         {sortedComments.map(c => (
@@ -265,9 +265,9 @@
                                                 ) : (
                                                     <div className="group relative">
                                                         <div className="text-[11px] sm:text-xs text-[#7c6373] space-y-0.5 bg-[#fcf8f9] p-2.5 rounded-lg border border-dashed border-[#e6b3c9]">
-                                                            <p><span className="font-bold text-[#c58ea4] mr-2">못 먹는것:</span> {c.allergies}</p>
-                                                            <p><span className="font-bold text-[#c58ea4] mr-2">먹고싶은것:</span> {c.wishes}</p>
-                                                            {c.message && <p><span className="font-bold text-[#c58ea4] mr-2">남긴말:</span> {c.message}</p>}
+                                                            <p><span className="font-bold text-[#c58ea4] mr-2">못 먹는 것:</span> {c.allergies}</p>
+                                                            <p><span className="font-bold text-[#c58ea4] mr-2">먹고 싶은 것:</span> {c.wishes}</p>
+                                                            {c.message && <p><span className="font-bold text-[#c58ea4] mr-2">남기는 말:</span> {c.message}</p>}
                                                         </div>
                                                         {user && user.uid === c.userId && (
                                                             <div className="mt-1.5 flex justify-end space-x-3 text-[9px] sm:text-[10px] text-[#a28695] font-bold">
